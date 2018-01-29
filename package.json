@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/tetianakh/nodejs#readme",
   "dependencies": {
-    "lodash": "^4.17.4"
+    "lodash": "^4.17.4",
+    "yargs": "^11.0.0"
   }
 }

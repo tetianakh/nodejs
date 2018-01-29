@@ -1,14 +1,20 @@
-console.log('Main module');
 
-const notes = require('./notes');
-const os = require('os');
 const fs = require('fs');
+const yargs = require('yargs');
 const _ = require('lodash');
 
-const name = os.userInfo().username;
+const notes = require('./notes');
 
-fs.appendFileSync('hello.log', `I am ${name} and I am ${notes.age} years old.\n`);
+const command = yargs.argv._[0];
 
-const arr = [1, 2, 1, 3, 2];
-console.log(arr);
-console.log(_.uniq(arr));
+if (command === 'list') {
+  notes.getAll();
+} else if (command === 'add') {
+  notes.addNote(yargs.argv.title, yargs.argv.body);
+} else if (command === 'read') {
+  notes.getNote(yargs.argv.title);
+} else if (command === 'remove'){
+  notes.removeNote(yargs.argv.title);
+} else {
+  console.log("Command not recognised!");
+}
