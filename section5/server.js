@@ -2,10 +2,24 @@ const express = require('express');
 const hbs = require('hbs');
 const app = express();
 
+const port = process.env.PORT || 3000;
+
 
 hbs.registerPartials(__dirname + '/views/partials')
 app.set('view engine', 'hbs');
+
+app.use( (req, resp, next) => {
+  const log = `${new Date().toString()}: ${req.method} ${req.url}`
+  console.log(log);
+  next();
+});
+
+// app.use( (req, resp, next) => {
+//   resp.render('maintenance.hbs');
+// });
+
 app.use(express.static(__dirname + '/public'))
+
 hbs.registerHelper('getCurrentYear', () => {
   return new Date().getFullYear();
 });
@@ -30,4 +44,6 @@ app.get('/bad', (req, resp) => {
   resp.send({errorMessage: 'Unable to fulfill request'});
 });
 
-app.listen(3000);
+app.listen(port, () => {
+  console.log('Server is listening on port ' + port);
+});
