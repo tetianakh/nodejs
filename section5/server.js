@@ -40,6 +40,10 @@ app.get('/about', (req, resp) => {
   });
 });
 
+app.get('/projects', (req, resp) => {
+  resp.render('projects.hbs', {pageTitle: 'My Projects'});
+});
+
 app.get('/bad', (req, resp) => {
   resp.send({errorMessage: 'Unable to fulfill request'});
 });
