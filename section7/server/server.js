@@ -21,10 +21,8 @@ app.post('/todos', (req, resp) => {
   });
   todo.save()
     .then((doc) => {
-      console.log(doc);
       resp.send(doc);
     }).catch( (err) => {
-      console.log('Failed to save todo');
       resp.status(400).send(err);
     });
 });
@@ -34,3 +32,5 @@ app.post('/todos', (req, resp) => {
 app.listen(PORT, () => {
   console.log(`Started on port ${PORT}`)
 })
+
+module.exports = {app};
