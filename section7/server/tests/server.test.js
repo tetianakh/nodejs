@@ -47,3 +47,32 @@ describe('/todos POST', () => {
 
   })
 })
+
+describe('/todos GET', () => {
+
+  const todos = [
+    {text: "test text 1"},
+    {text: "test text 2"}
+  ]
+  beforeEach( done => {
+    Todo.insertMany(todos).then( () => done());
+  })
+
+  it('should fetch todos from db', (done) => {
+
+    request(app)
+      .get('/todos')
+      .expect(200)
+      .expect( (resp) => {
+        expect(resp.body.todos.length).toBe(2)
+      })
+      .expect( (resp) => {
+        expect(resp.body.todos[0].text).toEqual(todos[0].text)
+      })
+      .expect( (resp) => {
+        expect(resp.body.todos[1].text).toEqual(todos[1].text)
+      }).end(done)
+
+  })
+
+})
