@@ -1,5 +1,6 @@
 const expect = require('expect');
 const request = require('supertest');
+const {ObjectID} = require('mongodb');
 
 const {app} = require('../server');
 const {Todo} = require('../models/todo');
@@ -76,3 +77,37 @@ describe('/todos GET', () => {
   })
 
 })
+
+describe('/todos/:id GET', () => {
+  const _id = new ObjectID();
+  beforeEach( done => {
+    const todo = Todo({text: "test text 1", _id: _id});
+    todo.save().then( () => done());
+  });
+
+  it('should return todo doc', (done) => {
+    request(app)
+      .get(`/todos/${_id}` )
+      .expect(200)
+      .expect(resp => {
+        expect(resp.body.text).toBe("test text 1")
+      })
+      .end(done);
+  });
+
+  it('should return 404 if doc not found', (done) => {
+    const otherId = new ObjectID();
+    request(app)
+      .get(`/todos/${otherId}`)
+      .expect(404)
+      .end(done);
+  });
+
+  it('should return 400 if id is invalid', (done) => {
+    request(app)
+      .get('/todos/catdog')
+      .expect(400)
+      .end(done);
+  });
+
+});

@@ -1,10 +1,13 @@
 const { MongoClient, ObjectID } = require('mongodb');
 
-MongoClient.connect('mongodb://localhost:27017/TodoApp', (err, db) => {
-  if (err) {
-    return console.log('Unable to connect to MongoDB server');
-  }
-  console.log('Connected to MongoDB server');
+const {User} = require('../server/models/user');
+
+
+// MongoClient.connect('mongodb://localhost:27017/TodoApp', (err, db) => {
+//   if (err) {
+//     return console.log('Unable to connect to MongoDB server');
+//   }
+//   console.log('Connected to MongoDB server');
 
   // db.collection('Todos').insertOne({
   //   text: 'something to do',
@@ -26,12 +29,21 @@ MongoClient.connect('mongodb://localhost:27017/TodoApp', (err, db) => {
   //     console.log('Failed to fetch Todo documents');
   //   });
 
-  db.collection('Todos').find().count()
-    .then((count) => {
-      console.log(`Count: ${count}`);
-    }).catch((err) => {
-      return console.log('Failed to count elements')
-    });
+//   db.collection('Todos').find().count()
+//     .then((count) => {
+//       console.log(`Count: ${count}`);
+//     }).catch((err) => {
+//       return console.log('Failed to count elements')
+//     });
+//
+//   db.close();
+// });
 
-  db.close();
-});
+const id = '5a80af7b987d5008681eff8f';
+
+User.findById(id).then(doc => {
+  if (!doc) {
+    return console.log('User not found')
+  };
+  console.log('User:', doc)
+}).catch(err => console.log(err));
