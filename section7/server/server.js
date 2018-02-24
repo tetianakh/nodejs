@@ -1,3 +1,5 @@
+require('./config/config');
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const {ObjectID} = require('mongodb');
@@ -73,7 +75,7 @@ app.patch('/todos/:id', (req, resp) => {
   } else {
     body.completedAt = null;
   }
-  
+
   Todo.findByIdAndUpdate(id, {$set: body}, {new: true}).then(todo => {
     if (!todo) {
       return resp.status(404).send();

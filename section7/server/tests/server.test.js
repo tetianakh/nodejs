@@ -1,3 +1,4 @@
+
 const expect = require('expect');
 const request = require('supertest');
 const {ObjectID} = require('mongodb');
@@ -15,7 +16,8 @@ describe('/todos POST', () => {
   it('should create a new todo item', (done) => {
     const text = 'test todo';
 
-    request(app).post('/todos')
+    request(app)
+      .post('/todos')
       .send({text})
       .expect(200)
       .expect((resp) => {
@@ -150,4 +152,52 @@ describe('/todos/:id DELETE', () => {
       .expect(404)
       .end(done);
   });
+});
+
+
+describe('/todos/:id PATCH', () => {
+  const todo = Todo({text: "test text 1"});
+  const completedTodo = Todo({
+    'text': 'test',
+    'completed': true,
+    'completedAt': 333
+  })
+  beforeEach( done => {
+    Todo.insertMany([todo, completedTodo]).then(() => done());
+  });
+
+  it('should set completedAt property when completing todo', (done) => {
+    request(app)
+      .patch(`/todos/${todo._id}`)
+      .send({'completed': true})
+      .expect(200)
+      .end((err, resp) => {
+        if (err) {
+          return done(err);
+        };
+        Todo.findById(todo._id).then(doc => {
+          expect(doc.completed).toBe(true);
+          expect(doc.completedAt).toExist();
+          done();
+        }).catch(err => done(err));
+      });
+  });
+
+  it('should clear completedAt when setting complete to false', (done) => {
+    request(app)
+      .patch(`/todos/${completedTodo._id}`)
+      .send({'completed': false})
+      .expect(200)
+      .end((err, resp) => {
+        if (err) {
+          return done(err);
+        };
+        Todo.findById(completedTodo._id).then(doc => {
+          expect(doc.completed).toBe(false);
+          expect(doc.completedAt).toNotExist();
+          done();
+        }).catch(err => done(err));
+      });
+  });
+
 });
