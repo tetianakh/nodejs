@@ -5,8 +5,11 @@ const {ObjectID} = require('mongodb');
 
 const {app} = require('../server');
 const {Todo} = require('../models/todo');
+const {User} = require('../models/user');
+const {populateUsers, users} = require('./seed/seed');
 
 
+beforeEach(populateUsers);
 beforeEach( done => {
   Todo.remove({}).then(() => done());
 });
@@ -201,3 +204,77 @@ describe('/todos/:id PATCH', () => {
   });
 
 });
+
+
+describe('GET /users/me', () => {
+
+  it('should return authenticated user', (done) => {
+    request(app)
+      .get('/users/me')
+      .set('x-auth', users[0].tokens[0].token)
+      .expect(200)
+      .expect(resp => {
+        expect(resp.body._id).toBe(users[0]._id.toHexString());
+        expect(resp.body.email).toBe(users[0].email);
+      })
+      .end(done);
+  })
+
+  it('should return 401 if there is no valid token in header', (done) => {
+    request(app)
+      .get('/users/me')
+      .expect(401)
+      .expect(resp => {
+        expect(resp.body).toEqual({});
+      })
+      .end(done);
+  })
+})
+
+
+describe( 'POST /users', () => {
+
+  it('should create a user', (done) => {
+    const email = 'example@example.com';
+    const password = 'abc123';
+    request(app)
+      .post('/users')
+      .send({email, password})
+      .expect(200)
+      .expect(resp => {
+        expect(resp.headers['x-auth']).toExist();
+        expect(resp.body._id).toExist();
+        expect(resp.body.email).toBe(email);
+      })
+      .end(err => {
+        if (err) {
+          return done(err);
+        }
+        User.findOne({email}).then( user => {
+          expect(user).toExist();
+          expect(user.password).toNotBe(password);  // password must be hashed
+          done();
+        }).catch(e => done(e));
+      });
+  });
+
+  it('should return validation errors if request is invalid', (done) => {
+    const email = 'example';
+    const password = '';
+    request(app)
+      .post('/users')
+      .send({email, password})
+      .expect(400)
+      .end(done);
+  });
+
+  it('should not create user if email in use', (done) => {
+    const email = users[0].email;
+    const password = 'abc123';
+    request(app)
+      .post('/users')
+      .send({email, password})
+      .expect(400)
+      .end(done);
+  })
+})
