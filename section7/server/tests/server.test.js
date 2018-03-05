@@ -147,7 +147,7 @@ describe('/todos/:id DELETE', () => {
           return done(err);
         }
         Todo.findById(todo._id).then(doc => {
-          expect(doc).toNotExist();
+          expect(doc).toBeFalsy();
           done();
         }).catch(err => done(err));
       });
@@ -195,7 +195,7 @@ describe('/todos/:id PATCH', () => {
         };
         Todo.findById(todo._id).then(doc => {
           expect(doc.completed).toBe(true);
-          expect(doc.completedAt).toExist();
+          expect(doc.completedAt).toBeTruthy();
           done();
         }).catch(err => done(err));
       });
@@ -213,7 +213,7 @@ describe('/todos/:id PATCH', () => {
         };
         Todo.findById(completedTodo._id).then(doc => {
           expect(doc.completed).toBe(false);
-          expect(doc.completedAt).toNotExist();
+          expect(doc.completedAt).toBeFalsy();
           done();
         }).catch(err => done(err));
       });
@@ -258,8 +258,8 @@ describe( 'POST /users', () => {
       .send({email, password})
       .expect(200)
       .expect(resp => {
-        expect(resp.headers['x-auth']).toExist();
-        expect(resp.body._id).toExist();
+        expect(resp.headers['x-auth']).toBeTruthy();
+        expect(resp.body._id).toBeTruthy();
         expect(resp.body.email).toBe(email);
       })
       .end(err => {
@@ -267,8 +267,8 @@ describe( 'POST /users', () => {
           return done(err);
         }
         User.findOne({email}).then( user => {
-          expect(user).toExist();
-          expect(user.password).toNotBe(password);  // password must be hashed
+          expect(user).toBeTruthy();
+          expect(user.password).not.toBe(password);  // password must be hashed
           done();
         }).catch(e => done(e));
       });
@@ -306,14 +306,14 @@ describe('POST users/login', () => {
       })
       .expect(200)
       .expect(resp => {
-        expect(resp.headers['x-auth']).toExist();
+        expect(resp.headers['x-auth']).toBeTruthy();
       })
       .end((err, resp) => {
         if (err) {
           return done(err);
         }
         User.findById(users[1]._id).then((user) => {
-          expect(user.tokens[0]).toInclude({
+          expect(user.tokens[0]).toMatchObject({
             access: 'auth',
             token: resp.headers['x-auth'],
           });
@@ -331,7 +331,7 @@ describe('POST users/login', () => {
       })
       .expect(400)
       .expect(resp => {
-        expect(resp.headers['x-auth']).toNotExist();
+        expect(resp.headers['x-auth']).toBeFalsy();
       })
       .end((err, resp) => {
         if (err) {
