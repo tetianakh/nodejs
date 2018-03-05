@@ -103,9 +103,27 @@ app.get('/users/me', authenticate, (req, resp) => {
   resp.send(req.user);
 })
 
+app.post('/users/login', (req, resp) => {
+  const body = _.pick(req.body, ['email', 'password'])
+  User.findByCredentials(body.email, body.password).then(user => {
+      return user.generateAuthToken().then(token => {
+        resp.header('x-auth', token).send(user);
+      });
+    }).catch(e => {
+      resp.status(400).send();
+    })
+});
+
+app.delete('/users/me/token', authenticate, (req, resp) => {
+  req.user.removeToken(req.token).then( () => {
+    resp.status(200).send();
+  }, (e) => {
+    resp.status(400).send(e);
+  });
+});
 
 app.listen(PORT, () => {
   console.log(`Started on port ${PORT}`)
-})
+});
 
 module.exports = {app};
