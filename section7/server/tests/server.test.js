@@ -13,6 +13,8 @@ beforeEach(populateUsers);
 beforeEach( done => {
   Todo.remove({}).then(() => done());
 });
+const token = users[0].tokens[0].token;
+
 
 describe('/todos POST', () => {
 
@@ -21,6 +23,7 @@ describe('/todos POST', () => {
 
     request(app)
       .post('/todos')
+      .set('x-auth', token)
       .send({text})
       .expect(200)
       .expect((resp) => {
@@ -41,6 +44,7 @@ describe('/todos POST', () => {
   it('should not save empty todo items', (done) => {
     request(app).post("/todos")
       .send({})
+      .set('x-auth', token)
       .expect(400)
       .expect( (resp) => {
         expect(resp.body.name ).toBe('ValidationError');
@@ -57,8 +61,8 @@ describe('/todos POST', () => {
 describe('/todos GET', () => {
 
   const todos = [
-    {text: "test text 1"},
-    {text: "test text 2"}
+    {text: "test text 1", _creator: users[0]._id},
+    {text: "test text 2", _creator: users[0]._id}
   ]
   beforeEach( done => {
     Todo.insertMany(todos).then( () => done());
@@ -68,6 +72,7 @@ describe('/todos GET', () => {
 
     request(app)
       .get('/todos')
+      .set('x-auth', token)
       .expect(200)
       .expect( (resp) => {
         expect(resp.body.todos.length).toBe(2)
@@ -86,13 +91,16 @@ describe('/todos GET', () => {
 describe('/todos/:id GET', () => {
   const _id = new ObjectID();
   beforeEach( done => {
-    const todo = Todo({text: "test text 1", _id: _id});
+    const todo = Todo({
+      text: "test text 1", _id: _id, _creator: users[0]._id
+    });
     todo.save().then( () => done());
   });
 
   it('should return todo doc', (done) => {
     request(app)
       .get(`/todos/${_id}` )
+      .set('x-auth', token)
       .expect(200)
       .expect(resp => {
         expect(resp.body.todo.text).toBe("test text 1")
@@ -104,6 +112,7 @@ describe('/todos/:id GET', () => {
     const otherId = new ObjectID();
     request(app)
       .get(`/todos/${otherId}`)
+      .set('x-auth', token)
       .expect(404)
       .end(done);
   });
@@ -111,6 +120,7 @@ describe('/todos/:id GET', () => {
   it('should return 404 if id is invalid', (done) => {
     request(app)
       .get('/todos/catdog')
+      .set('x-auth', token)
       .expect(404)
       .end(done);
   });
@@ -119,7 +129,7 @@ describe('/todos/:id GET', () => {
 
 
 describe('/todos/:id DELETE', () => {
-  const todo = Todo({text: "test text 1"});
+  const todo = Todo({text: "test text 1", _creator: users[0]._id});
   beforeEach( done => {
     todo.save().then( () => done());
   });
@@ -127,6 +137,7 @@ describe('/todos/:id DELETE', () => {
   it('should delete todo by ID', (done) => {
     request(app)
       .delete(`/todos/${todo._id}`)
+      .set('x-auth', token)
       .expect(200)
       .expect(resp => {
         expect(resp.body.todo._id).toBe(todo._id.toHexString());
@@ -145,6 +156,7 @@ describe('/todos/:id DELETE', () => {
     const otherId = new ObjectID();
     request(app)
       .delete(`/todos/${otherId}`)
+      .set('x-auth', token)
       .expect(404)
       .end(done);
   });
@@ -152,6 +164,7 @@ describe('/todos/:id DELETE', () => {
   it('should return 404 if id is invalid', (done) => {
     request(app)
       .delete('/todos/catdog')
+      .set('x-auth', token)
       .expect(404)
       .end(done);
   });
@@ -159,11 +172,12 @@ describe('/todos/:id DELETE', () => {
 
 
 describe('/todos/:id PATCH', () => {
-  const todo = Todo({text: "test text 1"});
+  const todo = Todo({text: "test text 1", _creator: users[0]._id});
   const completedTodo = Todo({
     'text': 'test',
     'completed': true,
-    'completedAt': 333
+    'completedAt': 333,
+    '_creator': users[0]._id
   })
   beforeEach( done => {
     Todo.insertMany([todo, completedTodo]).then(() => done());
@@ -173,6 +187,7 @@ describe('/todos/:id PATCH', () => {
     request(app)
       .patch(`/todos/${todo._id}`)
       .send({'completed': true})
+      .set('x-auth', token)
       .expect(200)
       .end((err, resp) => {
         if (err) {
@@ -190,6 +205,7 @@ describe('/todos/:id PATCH', () => {
     request(app)
       .patch(`/todos/${completedTodo._id}`)
       .send({'completed': false})
+      .set('x-auth', token)
       .expect(200)
       .end((err, resp) => {
         if (err) {
@@ -332,7 +348,7 @@ describe('POST users/login', () => {
 
 describe('DELETE /users/me/token', () => {
   it('should remove auth token', (done) => {
-    const token = users[0].tokens[0].token;
+
     request(app)
       .delete('/users/me/token')
       .set('x-auth', token)
